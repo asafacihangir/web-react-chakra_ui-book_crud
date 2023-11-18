@@ -57,3 +57,9 @@ You can learn more in the
 [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+
+## Resources
+https://github.com/Rahul-icoder/usermanagement-crud/blob/master/src/pages/CreateUser/CreateUser.jsx
+https://github.com/pendragonnn/Bookshelf-HW-13/blob/master/frontend/src/components/BookForm.jsx
+https://github.com/VuPhuongNam02/Laravel-React-CRUD-using-Chakra-UI/blob/main/my-app/src/student/index.tsx
+https://www.youtube.com/watch?v=UYsGbwil6UU&list=PLGMn9zzyRXo6J3SenbWuz-HxSEFJ8iiqj&index=8
