@@ -3,7 +3,7 @@ import {
     Box,
     Button,
     Flex,
-    FormControl,
+    FormControl, FormErrorMessage,
     FormLabel,
     Grid,
     GridItem,
@@ -30,17 +30,10 @@ import {
     VStack
 } from "@chakra-ui/react";
 import {AiFillEye, MdDelete, MdEdit} from "react-icons/all";
+import * as yup from 'yup';
+import {yupResolver} from "@hookform/resolvers/yup";
+import {useForm} from "react-hook-form";
 
-
-interface User {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    phoneNumber: string;
-    code: string;
-    createdAt: string;
-}
 
 interface Book {
     title: string;
@@ -65,6 +58,39 @@ const BookList = () => {
     const [books, setBooks] = useState([]);
     const [genres, setGenres] = useState([]);
 
+
+    const bookSchema = yup.object({
+        title: yup.string().required('Title is required'),
+        author: yup.string().required('Author is required'),
+        publisher: yup.string().required('Publisher is required'),
+        publicationDate: yup.string().required('Publication Date is required')
+            .matches(
+                /^\d{4}-\d{2}-\d{2}$/,
+                'Publication Date must be in the format YYYY-MM-DD'
+            ), isbn: yup.string().required('ISBN is required'),
+        genre: yup.string().required('Genre is required'),
+    });
+
+    const {register, handleSubmit, reset, formState: {errors, isValid}} = useForm<Book>({
+        resolver: yupResolver(bookSchema),
+        mode: "all",
+        defaultValues: {
+            title: '',
+            author: '',
+            publisher: '',
+            publicationDate: '',
+            isbn: '',
+            genre: ''
+        }
+    });
+
+
+    // Modal açıldığında formu sıfırla
+    useEffect(() => {
+        if (isOpen) {
+            reset();
+        }
+    }, [isOpen, reset]);
 
     useEffect(() => {
         const storedBooks = localStorage.getItem('books');
@@ -92,11 +118,10 @@ const BookList = () => {
             [e.target.name]: e.target.value
         }));
     };
-    const onSave = (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault(); // Click olayının varsayılan işlemi önle, eğer varsa
-        console.log("Test"); // Konsola "Test" yazdırır
-        console.log(book); // 'book' state'ini konsola yazdırır
-    }
+
+    const onSubmit = (values: Book) => {
+        console.log(values);
+    };
 
 
     return (
@@ -115,59 +140,105 @@ const BookList = () => {
                     <ModalHeader>Create Book</ModalHeader>
                     <ModalCloseButton/>
                     <ModalBody>
-                        <Grid templateColumns="repeat(2, 2fr)" gap={6}>
-                            <GridItem colSpan={1}>
-                                <VStack spacing={8}>
-                                    <FormControl isRequired>
-                                        <FormLabel>Title</FormLabel>
-                                        <Input type="text" name="title" onChange={handleChange} placeholder="Title"/>
-                                    </FormControl>
+                        <form id="create-book-form" onSubmit={(event: React.FormEvent<HTMLFormElement>) => {
+                            event.preventDefault();
+                            alert("Submitted")
+                        }}>
+                            <Grid templateColumns="repeat(2, 2fr)" gap={6}>
+                                <GridItem colSpan={1}>
+                                    <VStack spacing={8}>
+                                        <FormControl isRequired
+                                                     isInvalid={Boolean(errors?.title)}>
+                                            <FormLabel>Title</FormLabel>
+                                            <Input type="text"
+                                                   {...register("title")}
+                                                   name="title" onChange={handleChange}
+                                                   placeholder="Title"/>
 
-                                    <FormControl isRequired>
-                                        <FormLabel>Author</FormLabel>
-                                        <Input type="email" name="author" onChange={handleChange} placeholder="Author"/>
-                                    </FormControl>
+                                            <FormErrorMessage>
+                                                {errors?.title && errors?.title?.message}
+                                            </FormErrorMessage>
 
-                                    <FormControl isRequired>
-                                        <FormLabel>Publisher</FormLabel>
-                                        <Input type="text" name="publisher" onChange={handleChange}
-                                               placeholder="Publisher"/>
-                                    </FormControl>
-                                </VStack>
-                            </GridItem>
-                            <GridItem colSpan={1}>
-                                <VStack spacing={8}>
-                                    <FormControl isRequired>
-                                        <FormLabel>Publication Date</FormLabel>
-                                        <Input type="date" name="publicationDate" onChange={handleChange}
-                                               placeholder="Publication Date"/>
-                                    </FormControl>
+                                        </FormControl>
 
-                                    <FormControl isRequired>
-                                        <FormLabel>ISBN</FormLabel>
-                                        <Input type="text" name="isbn" onChange={handleChange} placeholder="ISBN"/>
-                                    </FormControl>
+                                        <FormControl isRequired isInvalid={!!errors?.author?.message}>
+                                            <FormLabel>Author</FormLabel>
+                                            <Input type="email"
+                                                   {...register("author")}
+                                                   name="author" onChange={handleChange}
+                                                   placeholder="Author"/>
+
+                                            <FormErrorMessage>
+                                                {errors?.author && errors?.author?.message}
+                                            </FormErrorMessage>
+
+                                        </FormControl>
+
+                                        <FormControl isRequired isInvalid={!!errors?.publisher?.message}>
+                                            <FormLabel>Publisher</FormLabel>
+                                            <Input type="text"
+                                                   {...register("publisher")}
+                                                   name="publisher" onChange={handleChange}
+                                                   placeholder="Publisher"/>
+                                            <FormErrorMessage>
+                                                {errors?.publisher && errors?.publisher?.message}
+                                            </FormErrorMessage>
+                                        </FormControl>
+                                    </VStack>
+                                </GridItem>
+                                <GridItem colSpan={1}>
+                                    <VStack spacing={8}>
+                                        <FormControl isRequired isInvalid={!!errors?.publicationDate?.message}>
+                                            <FormLabel>Publication Date</FormLabel>
+                                            <Input type="date"
+                                                   {...register("publicationDate")}
+                                                   name="publicationDate" onChange={handleChange}
+                                                   placeholder="Publication Date"/>
+                                            <FormErrorMessage>
+                                                {errors?.publicationDate && errors?.publicationDate?.message}
+                                            </FormErrorMessage>
+                                        </FormControl>
+
+                                        <FormControl isRequired isInvalid={!!errors?.isbn?.message}>
+                                            <FormLabel>ISBN</FormLabel>
+                                            <Input type="text"
+                                                   {...register("isbn")}
+                                                   name="isbn" onChange={handleChange} placeholder="ISBN"/>
+                                            <FormErrorMessage>
+                                                {errors?.isbn && errors?.isbn?.message}
+                                            </FormErrorMessage>
+                                        </FormControl>
 
 
-                                    <FormControl isRequired>
-                                        <FormLabel>Genre</FormLabel>
-                                        <Select placeholder="Select genre" name="genre" onChange={handleSelectChange}>
-                                            {genres.map((genre, index) => (
-                                                <option key={index} value={genre}>
-                                                    {genre}
-                                                </option>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                </VStack>
-                            </GridItem>
-                        </Grid>
+                                        <FormControl isRequired isInvalid={!!errors?.genre?.message}>
+                                            <FormLabel>Genre</FormLabel>
+                                            <Select placeholder="Select genre"
+                                                    {...register("genre")}
+                                                    name="genre"
+                                                    onChange={handleSelectChange}>
+                                                {genres.map((genre, index) => (
+                                                    <option key={index} value={genre}>
+                                                        {genre}
+                                                    </option>
+                                                ))}
+                                            </Select>
+                                            <FormErrorMessage>
+                                                {errors?.genre && errors?.genre?.message}
+                                            </FormErrorMessage>
+                                        </FormControl>
+                                    </VStack>
+                                </GridItem>
+                            </Grid>
+                        </form>
                     </ModalBody>
                     <ModalFooter>
                         <Button colorScheme='red' mr={3} onClick={onClose}>
                             Close
                         </Button>
-                        <Button colorScheme='blue' mr={3} onClick={onSave}>
+                        <Button colorScheme='blue' mr={3} type="submit"
+                                onClick={handleSubmit(onSubmit)}
+                                isDisabled={!isValid}
+                                form="create-book-form">
                             Save
                         </Button>
                     </ModalFooter>
@@ -190,7 +261,7 @@ const BookList = () => {
                 <Tbody>
                     {
                         books.map((book: Book, index) => (
-                            <Tr>
+                            <Tr key={index}>
                                 <Td>{index + 1}</Td>
                                 <Td>{book.title}</Td>
                                 <Td>{book.author}</Td>
