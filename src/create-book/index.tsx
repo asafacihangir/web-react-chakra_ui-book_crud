@@ -28,17 +28,11 @@ type CreateBookModalProps = {
     onClose: () => void;
     genres: string[];
     onSubmit: (newBook: Book) => void;
+    initialBook: Book | null;
 };
 
-const CreateBook: React.FC<CreateBookModalProps> = ({ isOpen, onClose, genres, onSubmit }) => {
-    const [book, setBook] = useState<Book>({
-        title: '',
-        author: '',
-        publisher: '',
-        publicationDate: '',
-        isbn: '',
-        genre: ''
-    });
+const CreateBook: React.FC<CreateBookModalProps> = ({isOpen, onClose, genres, onSubmit, initialBook}) => {
+
     const bookSchema = yup.object({
         title: yup.string().required('Title is required'),
         author: yup.string().required('Author is required'),
@@ -51,10 +45,11 @@ const CreateBook: React.FC<CreateBookModalProps> = ({ isOpen, onClose, genres, o
         genre: yup.string().required('Genre is required'),
     });
 
-    const {register, handleSubmit, reset, formState: {errors, isValid}} = useForm<Book>({
+    // useForm hook'u için defaultValues olarak initialBook kullanılıyor
+    const { register, handleSubmit, reset, formState: { errors, isValid } } = useForm<Book>({
         resolver: yupResolver(bookSchema),
         mode: "all",
-        defaultValues: {
+        defaultValues: initialBook || {
             title: '',
             author: '',
             publisher: '',
@@ -65,27 +60,19 @@ const CreateBook: React.FC<CreateBookModalProps> = ({ isOpen, onClose, genres, o
     });
 
 
-
-    // Modal açıldığında formu sıfırla
     useEffect(() => {
         if (isOpen) {
-            reset();
+            reset(initialBook ?? {
+                title: '',
+                author: '',
+                publisher: '',
+                publicationDate: '',
+                isbn: '',
+                genre: ''
+            });
         }
-    }, [isOpen, reset]);
+    }, [isOpen, initialBook, reset]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setBook((prev) => ({
-            ...prev,
-            [e.target.name]: e.target.value
-        }));
-    };
-
-    const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setBook(prevBook => ({
-            ...prevBook,
-            [e.target.name]: e.target.value
-        }));
-    };
 
 
     return (
@@ -107,7 +94,7 @@ const CreateBook: React.FC<CreateBookModalProps> = ({ isOpen, onClose, genres, o
                                         <FormLabel>Title</FormLabel>
                                         <Input type="text"
                                                {...register("title")}
-                                               name="title" onChange={handleChange}
+                                               name="title"
                                                placeholder="Title"/>
 
                                         <FormErrorMessage>
@@ -120,7 +107,7 @@ const CreateBook: React.FC<CreateBookModalProps> = ({ isOpen, onClose, genres, o
                                         <FormLabel>Author</FormLabel>
                                         <Input type="email"
                                                {...register("author")}
-                                               name="author" onChange={handleChange}
+                                               name="author"
                                                placeholder="Author"/>
 
                                         <FormErrorMessage>
@@ -133,7 +120,7 @@ const CreateBook: React.FC<CreateBookModalProps> = ({ isOpen, onClose, genres, o
                                         <FormLabel>Publisher</FormLabel>
                                         <Input type="text"
                                                {...register("publisher")}
-                                               name="publisher" onChange={handleChange}
+                                               name="publisher"
                                                placeholder="Publisher"/>
                                         <FormErrorMessage>
                                             {errors?.publisher && errors?.publisher?.message}
@@ -147,7 +134,7 @@ const CreateBook: React.FC<CreateBookModalProps> = ({ isOpen, onClose, genres, o
                                         <FormLabel>Publication Date</FormLabel>
                                         <Input type="date"
                                                {...register("publicationDate")}
-                                               name="publicationDate" onChange={handleChange}
+                                               name="publicationDate"
                                                placeholder="Publication Date"/>
                                         <FormErrorMessage>
                                             {errors?.publicationDate && errors?.publicationDate?.message}
@@ -158,7 +145,7 @@ const CreateBook: React.FC<CreateBookModalProps> = ({ isOpen, onClose, genres, o
                                         <FormLabel>ISBN</FormLabel>
                                         <Input type="text"
                                                {...register("isbn")}
-                                               name="isbn" onChange={handleChange} placeholder="ISBN"/>
+                                               name="isbn"  placeholder="ISBN"/>
                                         <FormErrorMessage>
                                             {errors?.isbn && errors?.isbn?.message}
                                         </FormErrorMessage>
@@ -170,7 +157,7 @@ const CreateBook: React.FC<CreateBookModalProps> = ({ isOpen, onClose, genres, o
                                         <Select placeholder="Select genre"
                                                 {...register("genre")}
                                                 name="genre"
-                                                onChange={handleSelectChange}>
+                                              >
                                             {genres.map((genre, index) => (
                                                 <option key={index} value={genre}>
                                                     {genre}
@@ -200,7 +187,6 @@ const CreateBook: React.FC<CreateBookModalProps> = ({ isOpen, onClose, genres, o
             </ModalContent>
         </Modal>
     );
-
 
 
 };

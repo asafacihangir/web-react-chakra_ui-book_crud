@@ -27,7 +27,12 @@ const BookList = () => {
     const [books, setBooks] = useState([]);
     const [genres, setGenres] = useState([]);
     const toast = useToast()
+    const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
+    const onEdit = (book: Book) => {
+        setSelectedBook(book);
+        onOpen();
+    };
 
     useEffect(() => {
         const storedBooks = localStorage.getItem('books');
@@ -46,28 +51,48 @@ const BookList = () => {
         try {
             const storedBooks = localStorage.getItem('books');
             let books = storedBooks ? JSON.parse(storedBooks) : [];
-            books.push(newBook);
+
+            // ISBN numarasına göre kitabın zaten kaydedilip kaydedilmediğini kontrol et
+            const existingIndex = books.findIndex((b: Book) => b.isbn === newBook.isbn);
+
+            if (existingIndex > -1) {
+                // Kitap zaten var, güncelle
+                books[existingIndex] = newBook;
+                toast({
+                    title: 'Successful',
+                    description: "Book updated successfully!",
+                    status: 'success',
+                    duration: 9000,
+                    isClosable: true,
+                });
+            } else {
+                // Yeni kitap, listeye ekle
+                books.push(newBook);
+                toast({
+                    title: 'Successful',
+                    description: "Book created successfully!",
+                    status: 'success',
+                    duration: 9000,
+                    isClosable: true,
+                });
+            }
+
+            // Yeni kitap listesini localStorage'a kaydet
             localStorage.setItem('books', JSON.stringify(books));
-            setBooks(books);
-            toast({
-                title: 'Successful',
-                description: "Book created successfully!",
-                status: 'success',
-                duration: 9000,
-                isClosable: true,
-            });
-            onClose();
+            setBooks(books); // State'i güncelle
+            onClose(); // Modal'ı kapat
         } catch (error) {
             console.error("Error saving the book", error);
             toast({
                 title: 'Error',
-                description: "While creatina a book error occcured: " + error,
+                description: "An error occurred while creating/updating the book: " + error,
                 status: 'error',
                 duration: 9000,
                 isClosable: true,
             });
         }
     };
+
 
 
     return (
@@ -83,9 +108,13 @@ const BookList = () => {
 
             <CreateBook
                 isOpen={isOpen}
-                onClose={onClose}
+                onClose={() => {
+                    onClose();
+                    setSelectedBook(null);
+                }}
                 genres={genres}
                 onSubmit={onSubmit}
+                initialBook={selectedBook}
             />
             <Table variant='simple'>
                 <TableCaption>Book Management List</TableCaption>
@@ -121,6 +150,7 @@ const BookList = () => {
                                         size="sm"
                                         ml="2"
                                         icon={<MdEdit style={{fontSize: '1.2rem'}}/>}
+                                        onClick={() => onEdit(book)} // Düzenle butonuna onClick olayı ekleniyor
                                         aria-label=""></IconButton>
                                     <IconButton
                                         ml="2"
