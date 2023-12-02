@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from "react";
+
 import {
     Box,
     Button,
@@ -16,22 +17,36 @@ import {
     useDisclosure,
     useToast,
 } from "@chakra-ui/react";
-import {AiFillEye, MdDelete, MdEdit} from "react-icons/all";
+import {MdDelete, MdEdit} from "react-icons/all";
 
 import CreateBook from "../create-book";
 import Book from "../model/book";
+import DeleteModal from "../component/delete-modal";
+
+
+const genresData = ["Fantasy", "Science Fiction", "Mystery", "Thriller", "Romance", "Western", "Dystopian", "Historical Fiction"];
 
 
 const BookList = () => {
     const {isOpen, onOpen, onClose} = useDisclosure()
     const [books, setBooks] = useState([]);
-    const [genres, setGenres] = useState([]);
+    const [genres, setGenres] = useState(genresData);
     const toast = useToast()
     const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+    const [deleteBook, setDeleteBook] = useState<Book | null>(null);
+    const [deleteBookMessage, setDeleteBookMessage] = useState<string | null>(null);
+    const {isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose} = useDisclosure();
 
     const onEdit = (book: Book) => {
         setSelectedBook(book);
         onOpen();
+    };
+
+    const onDeleteConfirm = (book: Book) => {
+        const message = `Are you sure you want to delete the book "${book?.title}" with ISBN "${book?.isbn}"?`;
+        setDeleteBook(book);
+        setDeleteBookMessage(message);
+        onDeleteOpen();
     };
 
     useEffect(() => {
@@ -39,13 +54,23 @@ const BookList = () => {
         if (storedBooks) {
             setBooks(JSON.parse(storedBooks));
         }
+    }, [setBooks]);
 
-        const storedGenres = localStorage.getItem('genres');
-        if (storedGenres) {
-            setGenres(JSON.parse(storedGenres));
-        }
-    }, [setBooks, setGenres]);
-
+    const onDelete = () => {
+        const storedBooks = localStorage.getItem('books');
+        let books = storedBooks ? JSON.parse(storedBooks) : [];
+        books = books.filter((b: Book) => b.isbn !== deleteBook?.isbn);
+        localStorage.setItem('books', JSON.stringify(books));
+        setBooks(books);
+        onDeleteClose();
+        toast({
+            title: 'Deleted',
+            description: deleteBook?.title + " has been successfully deleted.",
+            status: 'info',
+            duration: 9000,
+            isClosable: true,
+        });
+    };
 
     const onSubmit = (newBook: Book) => {
         try {
@@ -92,7 +117,6 @@ const BookList = () => {
             });
         }
     };
-
 
 
     return (
@@ -144,10 +168,6 @@ const BookList = () => {
                                 <Td>
                                     <IconButton
                                         size="sm"
-                                        icon={<AiFillEye style={{fontSize: '1.2rem'}}/>}
-                                        aria-label=""/>
-                                    <IconButton
-                                        size="sm"
                                         ml="2"
                                         icon={<MdEdit style={{fontSize: '1.2rem'}}/>}
                                         onClick={() => onEdit(book)} // Düzenle butonuna onClick olayı ekleniyor
@@ -155,6 +175,7 @@ const BookList = () => {
                                     <IconButton
                                         ml="2"
                                         size="sm"
+                                        onClick={() => onDeleteConfirm(book)}
                                         icon={<MdDelete style={{fontSize: '1.2rem', color: 'red'}}/>}
                                         aria-label=""/>
                                 </Td>
@@ -163,6 +184,9 @@ const BookList = () => {
                     }
                 </Tbody>
             </Table>
+
+            <DeleteModal isDeleteOpen={isDeleteOpen} onDeleteClose={onDeleteClose} onDelete={onDelete}
+                         message={deleteBookMessage}/>
         </Box>
 
     );
