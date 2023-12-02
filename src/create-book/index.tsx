@@ -84,7 +84,6 @@ const CreateBook: React.FC<CreateBookModalProps> = ({isOpen, onClose, genres, on
                 <ModalBody>
                     <form id="create-book-form" onSubmit={(event: React.FormEvent<HTMLFormElement>) => {
                         event.preventDefault();
-                        alert("Submitted")
                     }}>
                         <Grid templateColumns="repeat(2, 2fr)" gap={6}>
                             <GridItem colSpan={1}>
