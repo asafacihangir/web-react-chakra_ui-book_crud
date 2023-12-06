@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect} from "react";
 import {
     Button,
     FormControl,
@@ -34,6 +34,7 @@ type CreateBookModalProps = {
 const CreateBook: React.FC<CreateBookModalProps> = ({isOpen, onClose, genres, onSubmit, initialBook}) => {
 
     const bookSchema = yup.object({
+        id: yup.string().nullable().notRequired(),
         title: yup.string().required('Title is required'),
         author: yup.string().required('Author is required'),
         publisher: yup.string().required('Publisher is required'),
@@ -46,10 +47,11 @@ const CreateBook: React.FC<CreateBookModalProps> = ({isOpen, onClose, genres, on
     });
 
     // useForm hook'u için defaultValues olarak initialBook kullanılıyor
-    const { register, handleSubmit, reset, formState: { errors, isValid } } = useForm<Book>({
+    const {register, handleSubmit, reset, formState: {errors, isValid}} = useForm<Book>({
         resolver: yupResolver(bookSchema),
         mode: "all",
         defaultValues: initialBook || {
+            id: '',
             title: '',
             author: '',
             publisher: '',
@@ -63,6 +65,7 @@ const CreateBook: React.FC<CreateBookModalProps> = ({isOpen, onClose, genres, on
     useEffect(() => {
         if (isOpen) {
             reset(initialBook ?? {
+                id: '',
                 title: '',
                 author: '',
                 publisher: '',
@@ -72,7 +75,6 @@ const CreateBook: React.FC<CreateBookModalProps> = ({isOpen, onClose, genres, on
             });
         }
     }, [isOpen, initialBook, reset]);
-
 
 
     return (
@@ -144,7 +146,7 @@ const CreateBook: React.FC<CreateBookModalProps> = ({isOpen, onClose, genres, on
                                         <FormLabel>ISBN</FormLabel>
                                         <Input type="text"
                                                {...register("isbn")}
-                                               name="isbn"  placeholder="ISBN"/>
+                                               name="isbn" placeholder="ISBN"/>
                                         <FormErrorMessage>
                                             {errors?.isbn && errors?.isbn?.message}
                                         </FormErrorMessage>
@@ -156,7 +158,7 @@ const CreateBook: React.FC<CreateBookModalProps> = ({isOpen, onClose, genres, on
                                         <Select placeholder="Select genre"
                                                 {...register("genre")}
                                                 name="genre"
-                                              >
+                                        >
                                             {genres.map((genre, index) => (
                                                 <option key={index} value={genre}>
                                                     {genre}
